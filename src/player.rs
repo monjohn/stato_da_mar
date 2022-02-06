@@ -1,6 +1,8 @@
+use crate::prelude::*;
 use bevy::core::FixedTimestep;
 use bevy::math::Quat;
 use bevy::prelude::*;
+use std::f32::consts::PI;
 
 pub struct PlayerPlugin;
 
@@ -10,24 +12,21 @@ impl Plugin for PlayerPlugin {
             "game_setup_actors",
             SystemStage::single(player_spawn.system()),
         )
-        .add_system(player_movement.system())
-        // .add_system(player_fire.system())
+        .add_system(player_movement)
+        .add_system(player_fire)
         // .add_system(laser_movement.system())
         .add_system_set(SystemSet::new().with_run_criteria(FixedTimestep::step(0.5)));
     }
 }
 
-#[derive(Component)]
-struct Player;
-
-fn player_spawn(mut commands: Commands, asset_server: Res<AssetServer>, time: Res<Time>) {
+fn player_spawn(mut commands: Commands, asset_server: Res<AssetServer>, _time: Res<Time>) {
     commands
         .spawn_bundle(SpriteBundle {
             texture: asset_server.load("ship2x.png"),
             ..Default::default()
         })
-        .insert(Player);
-    //.insert(PlayerReadyFire)
+        .insert(Player)
+        .insert(PlayerReadyFire(true));
 }
 
 fn player_movement(
@@ -35,7 +34,6 @@ fn player_movement(
     mut player_positions: Query<&mut Transform, With<Player>>,
 ) {
     for mut transform in player_positions.iter_mut() {
-        // println!("Original: {:?}", transform.rotation);
         if keyboard_input.pressed(KeyCode::Left) {
             transform.rotate(Quat::from_rotation_z(0.01));
             transform.rotation = transform.rotation.normalize();
@@ -45,18 +43,61 @@ fn player_movement(
             transform.rotation = transform.rotation.normalize();
         }
         if keyboard_input.pressed(KeyCode::Down) {
-            // transform.translation.y -= 2.;
             transform.rotation = Quat::IDENTITY;
         }
         if keyboard_input.pressed(KeyCode::Up) {
-            let (x, y) = rotation_to_vector(transform.rotation.clone());
+            let (x, y) = rotation_to_vector(&transform.rotation);
             transform.translation.x += x;
             transform.translation.y += y;
         }
     }
 }
 
-fn rotation_to_vector(rotation: Quat) -> (f32, f32) {
+fn player_fire(
+    mut commands: Commands,
+    kb: Res<Input<KeyCode>>,
+    asset_server: Res<AssetServer>,
+    mut query: Query<(&Transform, &mut PlayerReadyFire), With<Player>>,
+) {
+    if let Ok((transform, mut ready_fire)) = query.get_single_mut() {
+        if ready_fire.0 && kb.pressed(KeyCode::Space) {
+            let pos_x = transform.translation.x;
+            let pos_y = transform.translation.y;
+
+            let mut spawn_lasers = |x: f32, y: f32| {
+                commands
+                    .spawn_bundle(SpriteBundle {
+                        texture: asset_server.load("cannonBall2x.png"),
+                        transform: Transform {
+                            translation: Vec3::new(pos_x, pos_y, 0.),
+                            // scale: Vec3::new(SCALE, SCALE, 1.),
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    })
+                    .insert(CannonBall)
+                    .insert(FromPlayer)
+                    .insert(Velocity::new(x * 5., y * 5.));
+            };
+
+            let _x_offset = 144.0 / 4.0 - 5.0;
+            let rot1 = transform.rotation.mul_quat(Quat::from_rotation_z(PI / 2.));
+            let (x1, y1) = rotation_to_vector(&rot1);
+            let rot2 = transform.rotation.mul_quat(Quat::from_rotation_z(PI / -2.));
+            let (x2, y2) = rotation_to_vector(&rot2);
+            spawn_lasers(x1, y1);
+            spawn_lasers(x2, y2);
+
+            ready_fire.0 = false;
+        }
+
+        if kb.just_released(KeyCode::Space) {
+            ready_fire.0 = true;
+        }
+    }
+}
+
+fn rotation_to_vector(rotation: &Quat) -> (f32, f32) {
     let (_r, angle) = rotation.to_axis_angle();
 
     let y = angle.cos();
