@@ -5,7 +5,6 @@ use bevy::prelude::*;
 use std::f32::consts::PI;
 
 pub struct PlayerPlugin;
-const SCALE: f32 = 0.6;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
@@ -20,14 +19,15 @@ fn player_spawn(mut commands: Commands, sprite_data: Res<SpriteData>, my_atlases
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: my_atlases.ships_atlas.clone(),
-            transform: Transform::from_scale(Vec3::splat(SCALE)),
+            transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE)),
             sprite: TextureAtlasSprite {
-                index: sprite_data.player,
+                index: sprite_data.get_player_sprite(PLAYER_STARTING_HEALTH),
                 ..Default::default()
             },
             ..Default::default()
         })
         .insert(Player)
+        .insert(Health::new(PLAYER_STARTING_HEALTH))
         .insert(PlayerReadyFire(true));
 }
 
@@ -73,7 +73,7 @@ fn player_fire(
                         texture_atlas: my_atlases.ships_atlas.clone(),
                         transform: Transform {
                             translation: Vec3::new(pos_x + x_offset, pos_y, 0.),
-                            scale: Vec3::splat(SCALE),
+                            scale: Vec3::splat(SPRITE_SCALE),
                             ..Default::default()
                         },
                         sprite: TextureAtlasSprite {

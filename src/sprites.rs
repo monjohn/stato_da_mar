@@ -1,4 +1,3 @@
-use crate::prelude::*;
 use bevy::prelude::*;
 use bevy::sprite::Rect;
 use std::collections::HashMap;
@@ -9,28 +8,19 @@ pub fn build_ship_atlas(asset_server: Res<AssetServer>) -> TextureAtlas {
     TextureAtlas::new_empty(texture_handle, Vec2::new(1024.0, 512.0))
 }
 
-pub fn load_ship_atlas(ship_atlas: &mut TextureAtlas) -> SpriteData {
+pub fn load_ship_atlas(ship_atlas: &mut TextureAtlas) -> HashMap<&'static str, usize> {
     let mut sprite_hash: HashMap<&'static str, usize> = HashMap::new();
-    for (name, min, max) in sprite_data().iter() {
+    for (name, min, max) in sprite_info().iter() {
         let index = ship_atlas.add_texture(Rect {
             min: Vec2::from(*min),
             max: Vec2::from(*max),
         });
         sprite_hash.insert(name, index);
     }
-    build_sprite_data(sprite_hash)
+    sprite_hash
 }
 
-pub fn build_sprite_data(sprite_hash: HashMap<&'static str, usize>) -> SpriteData {
-    let get_index = |name: &'static str| *(sprite_hash.get(name).unwrap());
-    SpriteData {
-        player: get_index("ship-plain"),
-        player_light_damage: get_index("ship-plain-light-damage"),
-        cannonball: get_index("cannonball"),
-    }
-}
-
-fn sprite_data() -> Vec<(&'static str, [f32; 2], [f32; 2])> {
+fn sprite_info() -> Vec<(&'static str, [f32; 2], [f32; 2])> {
     let sprites = vec![
         ("cannonball", [120.0, 29.0], [130.0, 39.0]),
         ("ship-plain", [408.0, 0.0], [474.0, 113.0]),
