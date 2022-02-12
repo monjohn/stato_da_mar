@@ -1,4 +1,5 @@
 mod components;
+mod main_menu;
 mod pirates;
 mod player;
 mod sprites;
@@ -12,6 +13,7 @@ mod prelude {
 }
 
 use bevy::{prelude::*, sprite::collide_aabb::collide};
+use main_menu::MainMenuPlugin;
 use pirates::PiratePlugin;
 use player::PlayerPlugin;
 use prelude::*;
@@ -29,11 +31,18 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::AQUAMARINE)) // Set background color
+        .add_state(AppState::MainMenu)
         .add_startup_system(setup)
+        .add_plugin(MainMenuPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(PiratePlugin)
         .add_system(cannonball_movement)
         .add_system(collide_with_player_cannonballs)
+        .add_system(game_over)
+        .add_system_set(
+            SystemSet::on_update(AppState::Playing)
+                .with_system(back_to_main_menu_controls.system()),
+        )
         .run();
 }
 
@@ -79,24 +88,42 @@ fn collide_with_player_cannonballs(
 ) {
     for (mut health, enemy_tf) in pirates.iter_mut() {
         for (cannonball_entity, cannonball_tf) in cannonballs.iter() {
-            let _cannonball_size = 10;
-            // let cannonball_scale = Vec2::from(cannonball_tf.scale.abs().xy());
-            // let enemy_scale = Vec2::from(enemy_tf.scale.xy());
+            let cannonball_size = 10.;
             let collision = collide(
                 cannonball_tf.translation,
-                Vec2::new(10., 10.), // player_laser_size * player_laser_scale,
+                Vec2::new(cannonball_size, cannonball_size), // size * scale,
                 enemy_tf.translation,
                 Vec2::new(66. * SPRITE_SCALE, 13. * SPRITE_SCALE), //enemy_size * enemy_scale,
             );
             if let Some(_) = collision {
                 health.damage = 1;
                 commands.entity(cannonball_entity).despawn();
-                println!("Pirate health: {}", health.damage)
-                // spawn the ExplosionToSpawn entity
-                // commands
-                // 	.spawn()
-                // 	.insert(ExplosionToSpawn(player_tf.translation.clone()));
             }
+        }
+    }
+}
+
+fn game_over(
+    mut _state: ResMut<State<AppState>>,
+    pirates: Query<&Health, (With<Pirate>, Without<Destroyed>)>,
+) {
+    if pirates.is_empty() {
+        // TODO: do something with this
+        // state.set(AppState::GameOver).unwrap();
+
+        println!("GAME OVER!")
+    }
+}
+
+// System implementation
+fn back_to_main_menu_controls(
+    mut keys: ResMut<Input<KeyCode>>,
+    mut app_state: ResMut<State<AppState>>,
+) {
+    if *app_state.current() == AppState::Playing {
+        if keys.just_pressed(KeyCode::Escape) {
+            app_state.set(AppState::MainMenu).unwrap();
+            keys.reset(KeyCode::Escape);
         }
     }
 }

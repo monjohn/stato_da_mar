@@ -5,10 +5,20 @@ use std::collections::HashMap;
 pub struct CannonBall;
 
 #[derive(Component)]
+pub struct Destroyed;
+
+#[derive(Component)]
 pub struct FromPirate;
 
 #[derive(Component)]
 pub struct FromPlayer;
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum AppState {
+    MainMenu,
+    GameOver,
+    Playing,
+}
 
 #[derive(Component, Debug)]
 pub struct Health {

@@ -72,14 +72,17 @@ fn pirate_fire(
 }
 
 fn health(
-    mut query: Query<(&mut TextureAtlasSprite, &mut Health), With<Pirate>>,
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut TextureAtlasSprite, &mut Health), With<Pirate>>,
     sprite_data: Res<SpriteData>,
 ) {
-    for (mut sprite, mut health) in query.iter_mut() {
-        println!("sprite {:?}", sprite);
+    for (entity, mut sprite, mut health) in query.iter_mut() {
         if health.damage > 0 && health.current > 0 {
             health.incur_damage();
             sprite.index = sprite_data.get_pirate_sprite(health.current);
+            if health.current == 0 {
+                commands.entity(entity).insert(Destroyed);
+            }
         }
     }
 }
