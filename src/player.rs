@@ -60,6 +60,8 @@ fn player_fire(
     kb: Res<Input<KeyCode>>,
     my_atlases: Res<MyAtlases>,
     sprite_data: Res<SpriteData>,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
     mut query: Query<(&Transform, &mut PlayerReadyFire), With<Player>>,
 ) {
     if let Ok((transform, mut ready_fire)) = query.get_single_mut() {
@@ -85,6 +87,9 @@ fn player_fire(
                     .insert(CannonBall)
                     .insert(FromPlayer)
                     .insert(Velocity::new(x * 5., y * 5.));
+
+                let music = asset_server.load("sounds/CannonShooting.ogg");
+                audio.play(music);
             };
 
             let x_offset = 144.0 / 4.0 - 5.0;
