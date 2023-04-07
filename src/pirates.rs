@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use bevy::core::FixedTimestep;
+use bevy::time::FixedTimestep;
 use bevy::prelude::*;
 
 pub struct PiratePlugin;
@@ -30,6 +30,7 @@ fn pirate_spawn(mut commands: Commands, sprite_data: Res<SpriteData>, my_atlases
             ..Default::default()
         })
         .insert(Pirate)
+        .insert(Range(DEFAULT_RANGE))
         .insert(Health::new(PIRATE_STARTING_HEALTH));
 }
 
@@ -41,33 +42,43 @@ fn pirate_fire(
     mut commands: Commands,
     my_atlases: Res<MyAtlases>,
     sprite_data: Res<SpriteData>,
-    mut query: Query<&Transform, With<Pirate>>,
+    mut pirates: Query<(&Transform, &Range), With<Pirate>>,
+    query: Query<&Transform, With<Player>>,
 ) {
-    for transform in query.iter_mut() {
-        let pos_x = transform.translation.x;
-        let pos_y = transform.translation.y;
+    if let Ok(player) = query.get_single() {
+        for (transform, range) in pirates.iter_mut() {
+            let player_in_range = player
+                .translation
+                .distance_squared(transform.translation.clone())
+                < range.0.pow(2) as f32;
 
-        let mut spawn_cannonballs = |x: f32, y: f32| {
-            commands
-                .spawn_bundle(SpriteSheetBundle {
-                    texture_atlas: my_atlases.ships_atlas.clone(),
-                    transform: Transform {
-                        translation: Vec3::new(pos_x, pos_y, 0.),
-                        scale: Vec3::splat(SPRITE_SCALE),
-                        ..Default::default()
-                    },
-                    sprite: TextureAtlasSprite {
-                        index: sprite_data.cannonball,
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                })
-                .insert(CannonBall)
-                .insert(FromPirate)
-                .insert(Velocity::new(x * 5., y * 5.));
-        };
+            if player_in_range {
+                let pos_x = transform.translation.x;
+                let pos_y = transform.translation.y;
 
-        spawn_cannonballs(pos_x, pos_y);
+                let mut spawn_cannonballs = |x: f32, y: f32| {
+                    commands
+                        .spawn_bundle(SpriteSheetBundle {
+                            texture_atlas: my_atlases.ships_atlas.clone(),
+                            transform: Transform {
+                                translation: Vec3::new(pos_x, pos_y, 0.),
+                                scale: Vec3::splat(SPRITE_SCALE),
+                                ..Default::default()
+                            },
+                            sprite: TextureAtlasSprite {
+                                index: sprite_data.cannonball,
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        })
+                        .insert(CannonBall)
+                        .insert(FromPirate)
+                        .insert(Velocity::new(x * 5., y * 5.));
+                };
+
+                spawn_cannonballs(pos_x, pos_y);
+            }
+        }
     }
 }
 

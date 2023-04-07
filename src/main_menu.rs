@@ -92,7 +92,7 @@ fn border() -> NodeBundle {
     NodeBundle {
         style: Style {
             size: Size::new(Val::Px(400.0), Val::Auto),
-            border: Rect::all(Val::Px(8.0)),
+            border: UiRect::all(Val::Px(8.0)),
             ..Default::default()
         },
         color: UiColor(Color::rgb(0.65, 0.65, 0.65)),
@@ -107,7 +107,7 @@ fn menu_background() -> NodeBundle {
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
             flex_direction: FlexDirection::ColumnReverse,
-            padding: Rect::all(Val::Px(5.0)),
+            padding: UiRect::all(Val::Px(5.0)),
             ..Default::default()
         },
         color: UiColor(Color::rgb(0.15, 0.15, 0.15)),
@@ -131,24 +131,23 @@ fn button() -> ButtonBundle {
 fn button_text(asset_server: &Res<AssetServer>, label: &str) -> TextBundle {
     return TextBundle {
         style: Style {
-            margin: Rect::all(Val::Px(10.0)),
+            margin: UiRect::all(Val::Px(10.0)),
             ..Default::default()
         },
-        text: Text::with_section(
+        text: Text::from_section(
             label,
             TextStyle {
                 font: asset_server.load("fonts/Auxerre Bold.ttf"),
                 font_size: 30.0,
                 color: Color::WHITE,
-            },
-            Default::default(),
+            }
         ),
         ..Default::default()
     };
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let camera_entity = commands.spawn_bundle(UiCameraBundle::default()).id();
+    let camera_entity = commands.spawn_bundle(Camera2dBundle::default()).id();
 
     let ui_root = commands
         .spawn_bundle(root())

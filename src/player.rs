@@ -1,5 +1,6 @@
 use crate::prelude::*;
-use bevy::core::FixedTimestep;
+
+use bevy::time::FixedTimestep;
 use bevy::math::Quat;
 use bevy::prelude::*;
 use std::f32::consts::PI;
@@ -19,7 +20,10 @@ fn player_spawn(mut commands: Commands, sprite_data: Res<SpriteData>, my_atlases
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: my_atlases.ships_atlas.clone(),
-            transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE)),
+            transform: Transform {
+                scale: Vec3::splat(SPRITE_SCALE),
+                ..Default::default()
+            },
             sprite: TextureAtlasSprite {
                 index: sprite_data.get_player_sprite(PLAYER_STARTING_HEALTH),
                 ..Default::default()
@@ -28,6 +32,7 @@ fn player_spawn(mut commands: Commands, sprite_data: Res<SpriteData>, my_atlases
         })
         .insert(Player)
         .insert(Health::new(PLAYER_STARTING_HEALTH))
+        .insert(Range(DEFAULT_RANGE))
         .insert(PlayerReadyFire(true));
 }
 
@@ -62,19 +67,20 @@ fn player_fire(
     sprite_data: Res<SpriteData>,
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
-    mut query: Query<(&Transform, &mut PlayerReadyFire), With<Player>>,
+    mut query: Query<(&Transform, &mut PlayerReadyFire, &Range), With<Player>>,
 ) {
-    if let Ok((transform, mut ready_fire)) = query.get_single_mut() {
+    if let Ok((transform, mut ready_fire, range)) = query.get_single_mut() {
         if ready_fire.0 && kb.pressed(KeyCode::Space) {
             let pos_x = transform.translation.x;
             let pos_y = transform.translation.y;
 
             let mut spawn_cannonballs = |x: f32, y: f32, x_offset: f32| {
+                let location = Vec3::new(pos_x + x_offset, pos_y, 0.);
                 commands
                     .spawn_bundle(SpriteSheetBundle {
                         texture_atlas: my_atlases.ships_atlas.clone(),
                         transform: Transform {
-                            translation: Vec3::new(pos_x + x_offset, pos_y, 0.),
+                            translation: location,
                             scale: Vec3::splat(SPRITE_SCALE),
                             ..Default::default()
                         },
@@ -86,6 +92,8 @@ fn player_fire(
                     })
                     .insert(CannonBall)
                     .insert(FromPlayer)
+                    .insert(Range(range.0))
+                    .insert(Origin { location: location })
                     .insert(Velocity::new(x * 5., y * 5.));
 
                 let music = asset_server.load("sounds/CannonShooting.ogg");

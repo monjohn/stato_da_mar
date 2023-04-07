@@ -46,6 +46,9 @@ pub struct Player;
 pub struct PlayerReadyFire(pub bool);
 
 #[derive(Component)]
+pub struct Range(pub u32);
+
+#[derive(Component)]
 pub struct SpriteData {
     pub player_ship: usize,
     pub player_light_damage: usize,
@@ -93,6 +96,11 @@ impl SpriteData {
 #[derive(Component)]
 pub struct MyAtlases {
     pub ships_atlas: Handle<TextureAtlas>,
+}
+
+#[derive(Component)]
+pub struct Origin {
+    pub location: Vec3,
 }
 
 #[derive(Component)]
