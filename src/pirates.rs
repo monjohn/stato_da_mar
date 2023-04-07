@@ -16,7 +16,7 @@ impl Plugin for PiratePlugin {
 
 fn pirate_spawn(mut commands: Commands, sprite_data: Res<SpriteData>, my_atlases: Res<MyAtlases>) {
     commands
-        .spawn_bundle(SpriteSheetBundle {
+        .spawn(SpriteSheetBundle {
             texture_atlas: my_atlases.ships_atlas.clone(),
             transform: Transform {
                 scale: Vec3::splat(SPRITE_SCALE),
@@ -58,7 +58,7 @@ fn pirate_fire(
 
                 let mut spawn_cannonballs = |x: f32, y: f32| {
                     commands
-                        .spawn_bundle(SpriteSheetBundle {
+                        .spawn(SpriteSheetBundle {
                             texture_atlas: my_atlases.ships_atlas.clone(),
                             transform: Transform {
                                 translation: Vec3::new(pos_x, pos_y, 0.),

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use bevy::sprite::Rect;
+// use bevy::sprite::Rect;
+use bevy::math::Rect;
 use std::collections::HashMap;
 
 // type SpriteHash = HashMap<&'static str, usize>;

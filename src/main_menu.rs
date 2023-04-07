@@ -3,11 +3,12 @@ use bevy::{app::AppExit, prelude::*};
 
 pub struct MainMenuPlugin;
 
+#[derive(Resource)]
 struct MainMenuData {
     camera_entity: Entity,
     ui_root: Entity,
 }
-
+#[derive(Resource)]
 struct MenuMaterials {
     button: Handle<ColorMaterial>,
     button_hovered: Handle<ColorMaterial>,
@@ -83,7 +84,7 @@ fn root() -> NodeBundle {
             ..Default::default()
         },
 
-        color: UiColor(Color::NONE),
+        background_color: BackgroundColor(Color::NONE),
         ..Default::default()
     }
 }
@@ -95,7 +96,7 @@ fn border() -> NodeBundle {
             border: UiRect::all(Val::Px(8.0)),
             ..Default::default()
         },
-        color: UiColor(Color::rgb(0.65, 0.65, 0.65)),
+        background_color: BackgroundColor(Color::rgb(0.65, 0.65, 0.65)),
         ..Default::default()
     }
 }
@@ -110,7 +111,7 @@ fn menu_background() -> NodeBundle {
             padding: UiRect::all(Val::Px(5.0)),
             ..Default::default()
         },
-        color: UiColor(Color::rgb(0.15, 0.15, 0.15)),
+        background_color: BackgroundColor(Color::rgb(0.15, 0.15, 0.15)),
         ..Default::default()
     }
 }
@@ -123,7 +124,7 @@ fn button() -> ButtonBundle {
             align_items: AlignItems::Center,
             ..Default::default()
         },
-        color: UiColor(Color::rgb(0.15, 0.15, 0.15)),
+        background_color: BackgroundColor(Color::rgb(0.15, 0.15, 0.15)),
         ..Default::default()
     }
 }
@@ -140,37 +141,35 @@ fn button_text(asset_server: &Res<AssetServer>, label: &str) -> TextBundle {
                 font: asset_server.load("fonts/Auxerre Bold.ttf"),
                 font_size: 30.0,
                 color: Color::WHITE,
-            }
+            },
         ),
         ..Default::default()
     };
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let camera_entity = commands.spawn_bundle(Camera2dBundle::default()).id();
+    let camera_entity = commands.spawn(Camera2dBundle::default()).id();
 
     let ui_root = commands
-        .spawn_bundle(root())
+        .spawn(root())
         .with_children(|parent| {
             // left vertical fill (border)
-            parent.spawn_bundle(border()).with_children(|parent| {
+            parent.spawn(border()).with_children(|parent| {
                 // left vertical fill (content)
-                parent
-                    .spawn_bundle(menu_background())
-                    .with_children(|parent| {
-                        parent
-                            .spawn_bundle(button())
-                            .with_children(|parent| {
-                                parent.spawn_bundle(button_text(&asset_server, "New Game"));
-                            })
-                            .insert(MenuButton::Play);
-                        parent
-                            .spawn_bundle(button())
-                            .with_children(|parent| {
-                                parent.spawn_bundle(button_text(&asset_server, "Quit"));
-                            })
-                            .insert(MenuButton::Quit);
-                    });
+                parent.spawn(menu_background()).with_children(|parent| {
+                    parent
+                        .spawn(button())
+                        .with_children(|parent| {
+                            parent.spawn(button_text(&asset_server, "New Game"));
+                        })
+                        .insert(MenuButton::Play);
+                    parent
+                        .spawn(button())
+                        .with_children(|parent| {
+                            parent.spawn(button_text(&asset_server, "Quit"));
+                        })
+                        .insert(MenuButton::Quit);
+                });
             });
         })
         .id();

@@ -18,7 +18,7 @@ impl Plugin for PlayerPlugin {
 
 fn player_spawn(mut commands: Commands, sprite_data: Res<SpriteData>, my_atlases: Res<MyAtlases>) {
     commands
-        .spawn_bundle(SpriteSheetBundle {
+        .spawn(SpriteSheetBundle {
             texture_atlas: my_atlases.ships_atlas.clone(),
             transform: Transform {
                 scale: Vec3::splat(SPRITE_SCALE),
@@ -77,7 +77,7 @@ fn player_fire(
             let mut spawn_cannonballs = |x: f32, y: f32, x_offset: f32| {
                 let location = Vec3::new(pos_x + x_offset, pos_y, 0.);
                 commands
-                    .spawn_bundle(SpriteSheetBundle {
+                    .spawn(SpriteSheetBundle {
                         texture_atlas: my_atlases.ships_atlas.clone(),
                         transform: Transform {
                             translation: location,

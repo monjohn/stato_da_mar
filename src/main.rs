@@ -21,13 +21,15 @@ use prelude::*;
 
 fn main() {
     App::new()
-        .insert_resource(WindowDescriptor {
-            title: "Stato Da Mar".to_string(),
-            width: WIN_WIDTH,
-            height: WIN_HEIGHT,
-            ..Default::default()
-        })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            window: WindowDescriptor {
+                title: "Stato Da Mar".to_string(),
+                width: WIN_WIDTH,
+                height: WIN_HEIGHT,
+                ..default()
+            },
+            ..default()
+        }))
         .insert_resource(ClearColor(Color::AQUAMARINE)) // Set background color
         .add_state(AppState::MainMenu)
         .add_startup_system(setup)
@@ -39,8 +41,7 @@ fn main() {
         .add_system(within_range)
         .add_system(game_over)
         .add_system_set(
-            SystemSet::on_update(AppState::Playing)
-                .with_system(back_to_main_menu_controls),
+            SystemSet::on_update(AppState::Playing).with_system(back_to_main_menu_controls),
         )
         .run();
 }
@@ -50,7 +51,7 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-commands.spawn_bundle(Camera2dBundle::default());
+    commands.spawn(Camera2dBundle::default());
 
     let mut ship_texture_atlas = sprites::build_ship_atlas(asset_server);
     let sprite_hash = sprites::load_ship_atlas(&mut ship_texture_atlas);
