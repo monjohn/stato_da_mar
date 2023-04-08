@@ -13,8 +13,9 @@ pub struct FromPirate;
 #[derive(Component)]
 pub struct FromPlayer;
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, States, Default)]
 pub enum AppState {
+    #[default]
     MainMenu,
     GameOver,
     Playing,

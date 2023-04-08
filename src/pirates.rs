@@ -1,16 +1,16 @@
 use crate::prelude::*;
-use bevy::time::FixedTimestep;
 use bevy::prelude::*;
+use std::time::Duration;
 
 pub struct PiratePlugin;
 
 impl Plugin for PiratePlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_stage("game_setup_pirates", SystemStage::single(pirate_spawn))
+        app.add_startup_system(pirate_spawn.in_base_set(StartupSet::PostStartup))
             .add_system(pirate_movement)
             .add_system(pirate_fire)
             .add_system(health)
-            .add_system_set(SystemSet::new().with_run_criteria(FixedTimestep::step(0.5)));
+            .insert_resource(FixedTime::new(Duration::from_millis(100)));
     }
 }
 

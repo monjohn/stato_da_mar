@@ -50,15 +50,13 @@ fn button_system(
 
 fn button_press_system(
     buttons: Query<(&Interaction, &MenuButton), (Changed<Interaction>, With<Button>)>,
-    mut state: ResMut<State<AppState>>,
+    mut next_state: ResMut<NextState<AppState>>,
     mut exit: EventWriter<AppExit>,
 ) {
     for (interaction, button) in buttons.iter() {
         if *interaction == Interaction::Clicked {
             match button {
-                MenuButton::Play => state
-                    .set(AppState::Playing)
-                    .expect("Couldn't switch state to Playing"),
+                MenuButton::Play => next_state.set(AppState::Playing),
                 MenuButton::Quit => exit.send(AppExit),
             };
         }
@@ -70,8 +68,8 @@ impl Plugin for MainMenuPlugin {
         app.init_resource::<MenuMaterials>()
             .add_system(button_system)
             .add_system(button_press_system)
-            .add_system_set(SystemSet::on_enter(AppState::MainMenu).with_system(setup))
-            .add_system_set(SystemSet::on_exit(AppState::MainMenu).with_system(cleanup));
+            .add_system(setup.in_schedule(OnEnter(AppState::MainMenu)))
+            .add_system(cleanup.in_schedule(OnExit(AppState::MainMenu)));
     }
 }
 

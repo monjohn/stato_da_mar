@@ -21,17 +21,18 @@ use prelude::*;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            window: WindowDescriptor {
-                title: "Stato Da Mar".to_string(),
-                width: WIN_WIDTH,
-                height: WIN_HEIGHT,
-                ..default()
-            },
-            ..default()
-        }))
+        .add_plugins(DefaultPlugins)
+        // .add_plugins(DefaultPlugins.set(WindowPlugin {
+        //     primary_window: Window {
+        //         title: "Stato Da Mar".to_string(),
+        //         width: WIN_WIDTH,
+        //         height: WIN_HEIGHT,
+        //         ..default()
+        //     },
+        //     ..default()
+        // }))
         .insert_resource(ClearColor(Color::AQUAMARINE)) // Set background color
-        .add_state(AppState::MainMenu)
+        .add_state::<AppState>()
         .add_startup_system(setup)
         .add_plugin(MainMenuPlugin)
         .add_plugin(PlayerPlugin)
@@ -40,9 +41,10 @@ fn main() {
         .add_system(collide_with_player_cannonballs)
         .add_system(within_range)
         .add_system(game_over)
-        .add_system_set(
-            SystemSet::on_update(AppState::Playing).with_system(back_to_main_menu_controls),
-        )
+        .add_system(back_to_main_menu_controls.in_set(OnUpdate(AppState::Playing)))
+        // .add_system_set(
+        //     SystemSet::on_update(AppState::Playing).with_system(back_to_main_menu_controls),
+        // )
         .run();
 }
 
@@ -154,12 +156,10 @@ fn game_over(
 // System implementation
 fn back_to_main_menu_controls(
     mut keys: ResMut<Input<KeyCode>>,
-    mut app_state: ResMut<State<AppState>>,
+    mut next_state: ResMut<NextState<AppState>>,
 ) {
-    if *app_state.current() == AppState::Playing {
-        if keys.just_pressed(KeyCode::Escape) {
-            app_state.set(AppState::MainMenu).unwrap();
-            keys.reset(KeyCode::Escape);
-        }
+    if keys.just_pressed(KeyCode::Escape) {
+        next_state.set(AppState::MainMenu);
+        keys.reset(KeyCode::Escape);
     }
 }

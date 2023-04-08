@@ -1,18 +1,18 @@
 use crate::prelude::*;
 
-use bevy::time::FixedTimestep;
 use bevy::math::Quat;
 use bevy::prelude::*;
 use std::f32::consts::PI;
+use std::time::Duration;
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_stage("game_setup_actors", SystemStage::single(player_spawn))
+        app.add_startup_system(player_spawn.in_base_set(StartupSet::PostStartup))
             .add_system(player_movement)
             .add_system(player_fire)
-            .add_system_set(SystemSet::new().with_run_criteria(FixedTimestep::step(0.5)));
+            .insert_resource(FixedTime::new(Duration::from_millis(100)));
     }
 }
 
